@@ -44,18 +44,72 @@ class ContactList extends React.Component {
     super(props);
     this.state = {
       contactsList: [],
+      filteredResult: null,
     };
   }
   componentDidMount() {
-    // TODO:  start api fetch here
+    this.getDataFromApi();
   }
+
+  getDataFromApi = async () => {
+    const res = await fetchFromMockApiEndPoint();
+    this.setState({
+      contactsList: res,
+    });
+  };
+
+  filterContacts = (query) => {
+    const { contactsList } = this.state;
+    if (query === "") {
+      this.setState({
+        filteredResult: [],
+      });
+      return;
+    }
+    const filteredResult = contactsList.filter((contact) => {
+      const { name } = contact;
+      return name.toLowerCase().search(query.toLowerCase()) !== -1;
+    });
+
+    console.log(filteredResult);
+    this.setState({
+      filteredResult,
+    });
+  };
+
+  handleSearchContact = (event) => {
+    const { target } = event;
+    const { value } = target;
+    this.filterContacts(value);
+  };
+
+  renderFilterItems = () => {
+    if (!this.state.filteredResult) {
+      return null;
+    }
+    if (!this.state.filteredResult.length === 0) {
+      return <p>No result found</p>;
+    } else {
+      return this.state.filteredResult.map((result, index) => (
+        <ContactItem contactData={result} key={index} />
+      ));
+    }
+  };
+
   render() {
     return (
       <div className={styles.listWrapper}>
-        {/* TODO:  edit here  and make it dynamic with API Call and mock data that provided in top of this file - use map for arrays in here and make it render at another function*/}
-        <ContactItem contactData={sampleContactData} />
-        <ContactItem contactData={sampleContactData} />
-        <ContactItem contactData={sampleContactData} />
+        <div>
+          <input onChange={this.handleSearchContact} value={this.state.query} />
+        </div>
+        <h2>filtered list </h2>
+        {this.renderFilterItems()}
+
+        <h2>list </h2>
+        {this.state.contactsList.length > 0 &&
+          this.state.contactsList.map((contact, index) => {
+            return <ContactItem contactData={contact} key={index} />;
+          })}
       </div>
     );
   }
